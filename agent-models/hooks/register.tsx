@@ -26,7 +26,16 @@ function modelColor(model: string): string {
 
 export const register: Register = on => {
   on('agent.spawn', async ($, e, next) => {
-    const result = await next(e)
+    // Prefix the task's description, which the built-in agents panel shows, with the model.
+    // Only the Agent call's own model (or a fork's parent) is known before the spawn; when the
+    // agent definition picks its model, the parent's is a guess and is marked with "?".
+    let shown = e
+    if (!e.workflow && !e.description.startsWith('[')) {
+      const known = e.fork ? e.parentModel : e.model
+      const label = known ? prettyModel(known) : `${prettyModel(e.parentModel)}?`
+      shown = { ...e, description: `[${label}] ${e.description}` }
+    }
+    const result = await next(shown)
     if (result.agentId) {
       const id = result.agentId
       const entry: AgentEntry = {

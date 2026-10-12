@@ -11,6 +11,19 @@ test('model names read nicely', () => {
   expect(prettyModel('haiku')).toBe('Haiku')
 })
 
+test('the task description carries the model for the agents panel', async ($, on) => {
+  const seen: string[] = []
+  on('agent.spawn', (_$, e) => {
+    seen.push(e.description)
+    return { model: e.model ?? e.parentModel, agentId: `a${seen.length}` }
+  })
+  const base = { tool_use_id: 't', prompt: 'p', subagentType: 'general-purpose', parentModel: 'claude-opus-5-5', fork: false }
+  await $.agent.spawn({ ...base, description: 'Push repo', model: 'haiku' } as never)
+  await $.agent.spawn({ ...base, description: 'Look around' } as never)
+  await $.agent.spawn({ ...base, description: '[Haiku 5.5] Already labeled', model: 'haiku' } as never)
+  expect(seen).toEqual(['[Haiku] Push repo', '[Opus 5.5?] Look around', '[Haiku 5.5] Already labeled'])
+})
+
 test('a running subagent shows with its model, and leaves when done', async ($, on) => {
   on('agent.spawn', () => ({ model: 'claude-haiku-5-5', agentId: 'a1' }))
   on('turn.complete', () => ({ text: '' }) as never)
