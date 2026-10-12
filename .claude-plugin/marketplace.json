@@ -1,0 +1,5 @@
+{
+  "name": "gegarin-claude",
+  "owner": { "name": "GegarinSagolsem" },
+  "plugins": [{ "name": "agent-models", "source": "./agent-models" }]
+}
