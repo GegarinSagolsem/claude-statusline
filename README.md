@@ -40,6 +40,48 @@ Install it at the Claude Code prompt (answer `y` to add the marketplace, then pi
 /plugin install agent-models --marketplace GegarinSagolsem/claude-statusline
 ```
 
+## Claude Glass theme (Windows Terminal)
+
+Gives Claude Code its own glass window in Windows Terminal, with two looks:
+
+- **Water glass**: a turquoise water picture behind the text, under frosted glass.
+- **Clear glass**: no picture; your desktop shows through the window.
+
+Only the "Claude Glass" tab changes. Your other terminal tabs stay as they are.
+
+### Install
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\glass\install-glass.ps1
+```
+
+This copies the theme files to `%USERPROFILE%\.claude\glass\`, adds the `/glass` commands to `%USERPROFILE%\.claude\commands\`, and adds a "Claude Glass" profile to Windows Terminal (a backup of the Terminal settings is saved as `settings.json.bak`).
+
+### Open it
+
+In Windows Terminal, click the down arrow (⌄) next to the **+** tab button and pick **Claude Glass**. Claude starts in that tab on its own.
+
+### Commands
+
+Type these inside Claude Code in the Claude Glass tab. Changes show up right away.
+
+| Command | What it does |
+|---|---|
+| `/glass` | Switch the glass theme on or off |
+| `/glass on` / `/glass off` | Glass theme on / normal black Claude |
+| `/glass water` | Water glass |
+| `/glass clear` | Clear glass |
+| `/glass-blur <0-10>` | Water: 0 = sharp water, 10 = very blurry. Clear: 0 = no blur, 1-10 = frosted |
+| `/glass-transparency <0-100>` | 0 = solid, 100 = fully see-through |
+
+Blur and transparency apply to the theme you're in, and each theme remembers its own settings.
+
+Notes:
+
+- Windows Terminal can only turn the desktop blur on or off, so clear glass has no blur strength. The water picture's blur is made by blurring the picture itself.
+- If you see no transparency, turn on Windows **Settings → Personalization → Colors → Transparency effects**. The blur also fades while the window is not focused.
+- If the commands don't show up in the `/` menu, restart Claude Code.
+
 ## Instructions for Claude
 
 If a user asks you to install this status line:
