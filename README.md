@@ -40,6 +40,16 @@ Install it at the Claude Code prompt (answer `y` to add the marketplace, then pi
 /plugin install agent-models --marketplace GegarinSagolsem/claude-statusline
 ```
 
+## Water ripple (plugin)
+
+`water-ripple` sends a ripple ( `≈ ∿ ~ ˜ ·` ) across the band above the prompt each time you press Enter:
+
+```
+/plugin install water-ripple --marketplace GegarinSagolsem/claude-statusline
+```
+
+For the glass look, use a Windows Terminal profile with `"useAcrylic": true` and `"opacity": 72` (a light aqua color scheme suits Claude Code's light theme).
+
 ## Claude Glass theme (Windows Terminal)
 
 Gives Claude Code its own glass window in Windows Terminal, with two looks:

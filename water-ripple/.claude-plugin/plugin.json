@@ -1,0 +1,7 @@
+{
+  "name": "water-ripple",
+  "version": "0.1.0",
+  "description": "A water ripple washes across the band above the prompt each time you press Enter",
+  "author": { "name": "GegarinSagolsem" },
+  "types": "./types/index.d.ts"
+}

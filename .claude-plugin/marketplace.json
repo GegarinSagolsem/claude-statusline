@@ -1,5 +1,8 @@
 {
   "name": "gegarin-claude",
   "owner": { "name": "GegarinSagolsem" },
-  "plugins": [{ "name": "agent-models", "source": "./agent-models" }]
+  "plugins": [
+    { "name": "agent-models", "source": "./agent-models" },
+    { "name": "water-ripple", "source": "./water-ripple" }
+  ]
 }
