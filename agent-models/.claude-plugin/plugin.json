@@ -1,6 +1,6 @@
 {
   "name": "agent-models",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shows each running subagent with the model it runs on, above the prompt",
   "author": { "name": "GegarinSagolsem" },
   "types": "./types/index.d.ts"
