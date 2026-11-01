@@ -15,6 +15,10 @@ Bars are green below 50%, yellow from 50%, red from 80%.
 
 ## Install
 
+**Easiest:** paste this repo's link into Claude Code and say "install this". Claude will ask which parts you want and set them up (see [Instructions for Claude](#instructions-for-claude)).
+
+Or install the status line yourself:
+
 ```powershell
 git clone https://github.com/GegarinSagolsem/claude-statusline.git
 cd claude-statusline
@@ -50,7 +54,7 @@ Install it at the Claude Code prompt (answer `y` to add the marketplace, then pi
 
 ![Water ripple above the prompt](water-ripple/preview.jpg)
 
-For the glass look, use a Windows Terminal profile with `"useAcrylic": true` and `"opacity": 72` (a light aqua color scheme suits Claude Code's light theme).
+It looks best with the [Claude Glass theme](#claude-glass-theme-windows-terminal) below.
 
 ## Claude Glass theme (Windows Terminal)
 
@@ -115,13 +119,24 @@ Notes:
 
 ## Instructions for Claude
 
-If a user asks you to install this status line:
+This section is for Claude Code. If a user gives you this repo's link and asks you to install it:
 
-1. Clone the repo (it is private; use `gh repo clone GegarinSagolsem/claude-statusline` if `gh` is signed in to that account).
-2. Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1` from the repo folder.
-3. Test it: pipe sample JSON into the installed script, e.g.
+1. **Check the system.** Everything here is for Windows (PowerShell and Windows Terminal). On macOS or Linux, tell the user it won't work there and stop.
+2. **Ask which parts they want** (all four if they don't mind):
+   - **Status line**: context, session and weekly usage bars under the prompt. It replaces any status line they already have (`settings.json` is backed up first), so mention that if they have one.
+   - **Claude Glass theme**: glass looks for a separate "Claude Glass" tab in Windows Terminal, with the `/glass` command. Needs Windows Terminal.
+   - **agent-models plugin**: labels each running subagent with its model.
+   - **water-ripple plugin**: a small ripple above the prompt each time they press Enter.
+3. **Clone the repo** (it's public, no sign-in needed) and work from its folder:
+   `git clone https://github.com/GegarinSagolsem/claude-statusline.git`
+4. **Install the chosen parts:**
+   - Status line: `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1`
+   - Claude Glass theme: `powershell -NoProfile -ExecutionPolicy Bypass -File .\glass\install-glass.ps1`
+   - Plugins: `claude plugin marketplace add GegarinSagolsem/claude-statusline`, then `claude plugin install agent-models@gegarin-claude --scope user` and/or `claude plugin install water-ripple@gegarin-claude --scope user`
+5. **Check it worked.** Each installer prints what it changed. If one fails, show the user the error instead of retrying quietly. To test the status line, pipe sample data into it:
    `'{"cwd":"C:\\x","model":{"display_name":"Opus"},"context_window":{"context_window_size":1000000,"used_percentage":6,"current_usage":{"input_tokens":60000}}}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.claude\statusline.ps1"`
-4. Install the `agent-models` plugin: `claude plugin marketplace add GegarinSagolsem/claude-statusline`, then `claude plugin install agent-models@gegarin-claude --scope user`.
-5. Tell the user to restart Claude Code to see both.
+6. **Tell the user what to do next:**
+   - Restart Claude Code to see the status line and plugins.
+   - For the glass theme: in Windows Terminal, click the down arrow next to **+**, pick **Claude Glass**, choose a folder, then type `/glass help`.
 
-To update later: `git pull` in the repo folder and run `install.ps1` again.
+To update later: `git pull` in the repo folder, then run the same installers again.
