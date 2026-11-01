@@ -48,6 +48,8 @@ Install it at the Claude Code prompt (answer `y` to add the marketplace, then pi
 /plugin install water-ripple --marketplace GegarinSagolsem/claude-statusline
 ```
 
+![Water ripple above the prompt](water-ripple/preview.jpg)
+
 For the glass look, use a Windows Terminal profile with `"useAcrylic": true` and `"opacity": 72` (a light aqua color scheme suits Claude Code's light theme).
 
 ## Claude Glass theme (Windows Terminal)

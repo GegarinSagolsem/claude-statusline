@@ -124,7 +124,7 @@ def ice():
     grain = (rng.random((H, W)).astype(np.float32) - 0.5) * 18
     arr = np.asarray(behind, np.float32).copy()
     arr[..., :3] = np.clip(arr[..., :3] + grain[..., None], 0, 255)
-    arr[..., 3] = 0.93 * 255
+    arr[..., 3] = 0.55 * 255                                     # semi-transparent: the frosted desktop shows through
     glass = Image.fromarray(arr.astype(np.uint8), "RGBA").filter(ImageFilter.GaussianBlur(0.6))
 
     water = Image.new("RGBA", (W, H), (0, 0, 0, 0))

@@ -206,7 +206,7 @@ if ($words.Count -eq 0) {
             }
             { $_ -in 'transparency', 'transparent', 'see-through' } {
                 $i++
-                $value = if ($i -lt $words.Count) { $words[$i] } else { '' }
+                $value = if ($i -lt $words.Count) { $words[$i].TrimEnd('%') } else { '' }   # "50%" works too
                 $prefs.$style.transparency = Read-Number $value 100 'Transparency' $prefs.$style.transparency
                 $enable = $true
             }
@@ -259,10 +259,12 @@ if ($enable) {
             }
         }
         'winter' {
-            # a finished winter-window picture: blurred lights, melt streaks and fern frost
+            # winter-window picture: a semi-transparent blue glass (the frosted desktop shows
+            # through) with melt streaks, drops and fern frost; the desktop is dimmed a little
+            # so text stays readable
             $glassProps = [ordered]@{
                 colorScheme                = $waterSchemeName
-                opacity                    = [int][Math]::Round(100 - $t * 0.9)
+                opacity                    = [int][Math]::Round((100 - $t * 0.9) * 0.7 + 30)
                 useAcrylic                 = $frost
                 backgroundImage            = $winterImage
                 backgroundImageOpacity     = 1
