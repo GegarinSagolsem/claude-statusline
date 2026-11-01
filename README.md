@@ -7,7 +7,7 @@ PS C:\path\to\folder> Opus 5.5
 Context ██░░░░░░░░|░░░░░░|░░░░ 65k/1M 6% │ Session █░░░░░░░ 2% (resets in 4h 45m) │ Weekly █████░░░ 58% (resets Sun 4:30 PM)
 ```
 
-- **Context**: how full the current session's context window is. The yellow `|` at 50% marks a good time to start a new session; the red `|` at 80% marks the red zone.
+- **Context**: how full the current session's context window is. The yellow `|` at 50% marks a good time to start a new session or run `/compact`; the red `|` at 80% marks the red zone.
 - **Session**: the 5-hour plan usage limit and when it resets.
 - **Weekly**: the 7-day plan usage limit and when it resets.
 
@@ -140,3 +140,7 @@ This section is for Claude Code. If a user gives you this repo's link and asks y
    - For the glass theme: in Windows Terminal, click the down arrow next to **+**, pick **Claude Glass**, choose a folder, then type `/glass help`.
 
 To update later: `git pull` in the repo folder, then run the same installers again.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
