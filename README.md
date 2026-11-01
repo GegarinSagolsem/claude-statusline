@@ -52,10 +52,18 @@ For the glass look, use a Windows Terminal profile with `"useAcrylic": true` and
 
 ## Claude Glass theme (Windows Terminal)
 
-Gives Claude Code its own glass window in Windows Terminal, with two looks:
+Gives Claude Code its own glass window in Windows Terminal, with four looks:
 
 - **Water glass**: a turquoise water picture behind the text, under frosted glass.
 - **Clear glass**: no picture; your desktop shows through the window.
+- **Droplet glass**: misty glass with drip streaks and water droplets.
+- **Winter glass**: a winter window at dusk, with soft blue lights, melt streaks with hanging drops, and fern frost along the edges.
+
+| Water glass | Clear glass |
+|---|---|
+| ![Water glass](glass/previews/water.jpg) | ![Clear glass](glass/previews/clear.jpg) |
+| **Droplet glass** | **Winter glass** |
+| ![Droplet glass](glass/previews/droplet.jpg) | ![Winter glass](glass/previews/winter.jpg) |
 
 Only the "Claude Glass" tab changes. Your other terminal tabs stay as they are.
 
@@ -65,30 +73,41 @@ Only the "Claude Glass" tab changes. Your other terminal tabs stay as they are.
 powershell -NoProfile -ExecutionPolicy Bypass -File .\glass\install-glass.ps1
 ```
 
-This copies the theme files to `%USERPROFILE%\.claude\glass\`, adds the `/glass` commands to `%USERPROFILE%\.claude\commands\`, and adds a "Claude Glass" profile to Windows Terminal (a backup of the Terminal settings is saved as `settings.json.bak`).
+This copies the theme files to `%USERPROFILE%\.claude\glass\`, adds the `/glass` command to `%USERPROFILE%\.claude\commands\`, and adds a "Claude Glass" profile to Windows Terminal (a backup of the Terminal settings is saved as `settings.json.bak`).
 
 ### Open it
 
-In Windows Terminal, click the down arrow (⌄) next to the **+** tab button and pick **Claude Glass**. Claude starts in that tab on its own.
+In Windows Terminal, click the down arrow (⌄) next to the **+** tab button and pick **Claude Glass**. A small menu asks where Claude should start:
+
+![The start menu](glass/previews/start-menu.jpg)
+
+Use the arrow keys and Enter, or press a number. Enter on its own picks the first choice, and Esc picks your home folder. The recent folders come from Claude's own history, with the one you used last at the top. `C:\Windows` (including system32) is never offered. Claude then starts in that folder, and asks whether you trust it if it's new.
 
 ### Commands
 
-Type these inside Claude Code in the Claude Glass tab. Changes show up right away.
+Everything is one command, `/glass`. Type it inside Claude Code in the Claude Glass tab. Changes show up right away, and each command tells you what's on now.
 
-| Command | What it does |
+| Type this | What it does |
 |---|---|
-| `/glass` | Switch the glass theme on or off |
-| `/glass on` / `/glass off` | Glass theme on / normal black Claude |
-| `/glass water` | Water glass |
-| `/glass clear` | Clear glass |
-| `/glass-blur <0-10>` | Water: 0 = sharp water, 10 = very blurry. Clear: 0 = no blur, 1-10 = frosted |
-| `/glass-transparency <0-100>` | 0 = solid, 100 = fully see-through |
+| `/glass` | Turn glass on or off |
+| `/glass water` | Water look |
+| `/glass clear` | Clear look (your desktop shows through) |
+| `/glass droplet` | Droplet look (misty glass with drips and droplets) |
+| `/glass winter` | Winter look (winter window with fern frost) |
+| `/glass off` | Normal black Claude (`/glass on` brings glass back) |
+| `/glass frost on` / `/glass frost off` | Frosted glass over your desktop. `off` lets you see your desktop sharply |
+| `/glass blur 0-10` | Blur the water picture: 0 = sharp, 10 = very blurry. In the other looks, `blur` works the same as `frost` |
+| `/glass transparency 0-100` | 0 = solid, 100 = fully see-through |
+| `/glass status` | Show what's on now, without changing anything |
+| `/glass help` | List these commands |
 
-Blur and transparency apply to the theme you're in, and each theme remembers its own settings.
+You can put several in one line, for example `/glass water frost off blur 3 transparency 60`.
+
+Frost, blur and transparency change the look you're in. Each look remembers its own settings.
 
 Notes:
 
-- Windows Terminal can only turn the desktop blur on or off, so clear glass has no blur strength. The water picture's blur is made by blurring the picture itself.
+- The droplet and winter pictures (`glass/droplet.png`, `glass/winter.png`) are drawn by `glass/make-glass-pictures.py`. The droplet look also dims the desktop behind the glass so text stays readable. The water picture's blur is made by blurring the picture itself.
 - If you see no transparency, turn on Windows **Settings → Personalization → Colors → Transparency effects**. The blur also fades while the window is not focused.
 - If the commands don't show up in the `/` menu, restart Claude Code.
 

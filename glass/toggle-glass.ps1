@@ -1,33 +1,69 @@
 # Controls the "Claude Glass" Windows Terminal profile.
-# Usage:
-#   toggle-glass.ps1 [on|off|toggle]          switch glass theme on/off (default: toggle)
-#   toggle-glass.ps1 water                    water-glass theme (water picture behind the text)
-#   toggle-glass.ps1 clear                    clear-glass theme (see your desktop through the window)
-#   toggle-glass.ps1 blur <0-10>              blur for the current glass theme
-#   toggle-glass.ps1 transparency <0-100>     see-through amount for the current glass theme
-param([string]$Mode = 'toggle', [string]$Value = '')
+# Usage (words can be combined, e.g. "water blur 3 transparency 60"):
+#   toggle-glass.ps1                          switch glass on/off
+#   toggle-glass.ps1 on | off                 glass on / normal black Claude
+#   toggle-glass.ps1 water                    water look (water picture behind the text)
+#   toggle-glass.ps1 clear                    clear look (your desktop shows through the window)
+#   toggle-glass.ps1 droplet                  droplet look (misty glass with drips and droplets)
+#   toggle-glass.ps1 winter                   winter look (winter window with fern frost)
+#   toggle-glass.ps1 frost <on|off>           frosted glass over the desktop, for the current look
+#   toggle-glass.ps1 blur <0-10|on|off>       blur the water picture (in the other looks, same as frost)
+#   toggle-glass.ps1 transparency <0-100>     see-through amount for the current look
+#   toggle-glass.ps1 status                   show what's on now, change nothing
+#   toggle-glass.ps1 help                     list the commands
+param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Words = @())
+
+$usage = @'
+Claude Glass commands:
+  /glass                      turn glass on or off
+  /glass water                water look
+  /glass clear                clear look (your desktop shows through)
+  /glass droplet              droplet look (misty glass with drips and droplets)
+  /glass winter               winter look (winter window with fern frost)
+  /glass off                  normal black Claude (/glass on brings glass back)
+  /glass frost on|off         frosted glass over your desktop (off = see it sharply)
+  /glass blur 0-10            blur the water picture: 0 = sharp, 10 = very blurry
+  /glass transparency 0-100   0 = solid, 100 = fully see-through
+  /glass status               show what's on now
+You can combine them, e.g. /glass water frost off blur 3 transparency 60
+'@
 
 $settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 if (-not (Test-Path $settingsPath)) { $settingsPath = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json" }
 $glassDir     = "$env:USERPROFILE\.claude\glass"
 $prefsPath    = "$glassDir\glass-settings.json"
+$dropletImage = "$glassDir\droplet.png"
+$winterImage  = "$glassDir\winter.png"
 $profileName  = 'Claude Glass'
 $waterSchemeName = 'Claude Glass Water'
 $clearSchemeName = 'Claude Clear Glass'
+$looks = 'water', 'clear', 'droplet', 'winter'
 
-# Saved look per theme, so switching keeps your choices
+# Saved settings per look, so switching keeps your choices
 $prefs = [pscustomobject]@{
-    style = 'water'
-    water = [pscustomobject]@{ blur = 0; transparency = 45 }
-    clear = [pscustomobject]@{ blur = 5; transparency = 60 }
+    style   = 'water'
+    water   = [pscustomobject]@{ blur = 0; transparency = 45;  frost = $true }
+    clear   = [pscustomobject]@{ blur = 0; transparency = 60;  frost = $true }
+    droplet = [pscustomobject]@{ blur = 0; transparency = 100; frost = $true }
+    winter  = [pscustomobject]@{ blur = 0; transparency = 100; frost = $true }
 }
 if (Test-Path $prefsPath) {
     try {
         $saved = Get-Content $prefsPath -Raw | ConvertFrom-Json
         if ($saved.style) {
-            $prefs.style = $saved.style
-            foreach ($s in 'water', 'clear') {
-                if ($saved.$s) { $prefs.$s.blur = [int]$saved.$s.blur; $prefs.$s.transparency = [int]$saved.$s.transparency }
+            if ($saved.style -in $looks) { $prefs.style = $saved.style }
+            foreach ($s in $looks) {
+                if (-not $saved.$s) { continue }
+                $prefs.$s.blur = [int]$saved.$s.blur; $prefs.$s.transparency = [int]$saved.$s.transparency
+                $f = $saved.$s.frost
+                if ($f -is [bool]) { $prefs.$s.frost = $f }
+                elseif ($null -ne $f) {
+                    # older files had frost levels 0-11: 2-10 is now the droplet look, 11 the winter look
+                    $prefs.$s.frost = ([int]$f -gt 0)
+                    if ($s -eq $saved.style -and [int]$f -ge 11) { $prefs.style = 'winter' }
+                    elseif ($s -eq $saved.style -and [int]$f -ge 2) { $prefs.style = 'droplet' }
+                }
+                elseif ($s -eq 'clear') { $prefs.$s.frost = ([int]$saved.$s.blur -gt 0) }  # oldest files: clear blur was the frost
             }
         } elseif ($null -ne $saved.blur) {
             # older settings file (water only)
@@ -91,27 +127,92 @@ $profile = $settings.profiles.list | Where-Object { $_.name -eq $profileName } |
 if (-not $profile) { Write-Output "Profile '$profileName' not found in Windows Terminal settings."; exit 1 }
 $isGlass = [bool]($profile.PSObject.Properties.Name -contains 'opacity')
 
+function Fail([string]$message) {
+    Write-Output $message
+    Write-Output ''
+    Write-Output $usage
+    exit 1
+}
+
 function Read-Number([string]$text, [int]$max, [string]$label, [int]$current) {
     $n = 0
     if (-not [int]::TryParse($text, [ref]$n) -or $n -lt 0 -or $n -gt $max) {
-        Write-Output "$label must be a number from 0 to $max (now: $current)."; exit 1
+        Fail "$label needs a number from 0 to $max (now: $current)."
     }
     return $n
 }
 
-$style = $prefs.style
-switch ($Mode.ToLower()) {
-    'on'    { $enable = $true }
-    'off'   { $enable = $false }
-    'water' { $prefs.style = 'water'; $enable = $true }
-    'clear' { $prefs.style = 'clear'; $enable = $true }
-    'blur' {
-        $prefs.$style.blur = Read-Number $Value 10 'Blur' $prefs.$style.blur; $enable = $true
+# frost: on/off (1/0 work too). Old frost levels point to the looks that replaced them.
+function Read-Frost([string]$text, [string]$label, [bool]$current) {
+    $now = if ($current) { 'on' } else { 'off' }
+    if ($text -in 'on', '1') { return $true }
+    if ($text -in 'off', '0') { return $false }
+    $n = 0
+    if ([int]::TryParse($text, [ref]$n) -and $n -ge 11) { Fail "$label is just on or off now (now: $now). For the winter window, type /glass winter." }
+    if ([int]::TryParse($text, [ref]$n) -and $n -ge 2) { Fail "$label is just on or off now (now: $now). For the misty droplet glass, type /glass droplet." }
+    Fail "$label needs on or off (now: $now)."
+}
+
+function Get-Status {
+    if (-not $isGlass) { return 'Glass is OFF (normal black Claude). Type /glass to turn it on.' }
+    $s = $prefs.style
+    $t = $prefs.$s.transparency
+    $frostText = if ($prefs.$s.frost) { 'frost on' } else { 'frost off' }
+    switch ($s) {
+        'water'   { return "Water glass ON - $frostText, picture blur $($prefs.water.blur)/10, transparency $t%." }
+        'clear'   { return "Clear glass ON - $frostText, transparency $t%." }
+        'droplet' { return "Droplet glass ON - $frostText, transparency $t%." }
+        'winter'  { return "Winter glass ON - $frostText, transparency $t%." }
     }
-    'transparency' {
-        $prefs.$style.transparency = Read-Number $Value 100 'Transparency' $prefs.$style.transparency; $enable = $true
+}
+
+$words = @($Words | Where-Object { $_ -ne $null -and $_.Trim() -ne '' } | ForEach-Object { $_.Trim().ToLower() })
+
+if ($words.Count -eq 1 -and $words[0] -in 'help', '-h', '--help', '?') { Write-Output $usage; exit 0 }
+if ($words.Count -eq 1 -and $words[0] -eq 'status') { Write-Output (Get-Status); exit 0 }
+
+if ($words.Count -eq 0) {
+    $enable = -not $isGlass
+} else {
+    $enable = $true
+    for ($i = 0; $i -lt $words.Count; $i++) {
+        $word = $words[$i]
+        $style = $prefs.style
+        switch ($word) {
+            'toggle' { $enable = -not $isGlass }
+            'on'     { $enable = $true }
+            'off'    { $enable = $false }
+            { $_ -in $looks } { $prefs.style = $word; $enable = $true }
+            'frost' {
+                $i++
+                $value = if ($i -lt $words.Count) { $words[$i] } else { '' }
+                $prefs.$style.frost = Read-Frost $value 'Frost' $prefs.$style.frost
+                $enable = $true
+            }
+            'blur' {
+                $i++
+                $value = if ($i -lt $words.Count) { $words[$i] } else { '' }
+                if ($style -ne 'water') {
+                    # only the water look has a picture to blur; elsewhere blur is the frost
+                    $n = 0
+                    if ([int]::TryParse($value, [ref]$n) -and $n -ge 0 -and $n -le 10) { $prefs.$style.frost = ($n -gt 0) }
+                    else { $prefs.$style.frost = Read-Frost $value 'Blur' $prefs.$style.frost }
+                } else {
+                    if ($value -eq 'on')      { if ($prefs.water.blur -le 0) { $prefs.water.blur = 5 } }
+                    elseif ($value -eq 'off') { $prefs.water.blur = 0 }
+                    else { $prefs.water.blur = Read-Number $value 10 'Blur' $prefs.water.blur }
+                }
+                $enable = $true
+            }
+            { $_ -in 'transparency', 'transparent', 'see-through' } {
+                $i++
+                $value = if ($i -lt $words.Count) { $words[$i] } else { '' }
+                $prefs.$style.transparency = Read-Number $value 100 'Transparency' $prefs.$style.transparency
+                $enable = $true
+            }
+            default { Fail "I don't know '$word'." }
+        }
     }
-    default { $enable = -not $isGlass }
 }
 
 $prefs | ConvertTo-Json -Depth 5 | Set-Content $prefsPath -Encoding UTF8
@@ -120,10 +221,14 @@ $prefs | ConvertTo-Json -Depth 5 | Set-Content $prefsPath -Encoding UTF8
 $backup = "$settingsPath.before-glass.bak"
 if (-not (Test-Path $backup)) { Copy-Item $settingsPath $backup }
 
-$glassKeys = 'colorScheme', 'opacity', 'useAcrylic', 'backgroundImage', 'backgroundImageOpacity', 'backgroundImageStretchMode'
+$glassKeys = 'colorScheme', 'opacity', 'useAcrylic', 'background', 'backgroundImage', 'backgroundImageOpacity', 'backgroundImageStretchMode'
 foreach ($key in $glassKeys) {
     if ($profile.PSObject.Properties.Name -contains $key) { $profile.PSObject.Properties.Remove($key) }
 }
+
+# pictures from older versions that are no longer used
+foreach ($old in 'frost.png', 'frost-ice.png') { Remove-Item (Join-Path $glassDir $old) -Force -ErrorAction SilentlyContinue }
+Get-ChildItem $glassDir -Filter 'water-mix-*.png' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
 if ($enable) {
     foreach ($scheme in $schemes) {
@@ -133,21 +238,46 @@ if ($enable) {
     }
     $style = $prefs.style
     $t = $prefs.$style.transparency
-    $b = $prefs.$style.blur
-    if ($style -eq 'clear') {
-        $glassProps = [ordered]@{
-            colorScheme = $clearSchemeName
-            opacity     = [int][Math]::Max(0, 100 - $t)
-            useAcrylic  = ($b -gt 0)
+    $frost = [bool]$prefs.$style.frost
+    switch ($style) {
+        'clear' {
+            $glassProps = [ordered]@{
+                colorScheme = $clearSchemeName
+                opacity     = [int][Math]::Max(0, 100 - $t)
+                useAcrylic  = $frost
+            }
         }
-    } else {
-        $glassProps = [ordered]@{
-            colorScheme                = $waterSchemeName
-            opacity                    = [int][Math]::Round(100 - $t * 0.9)
-            useAcrylic                 = $true
-            backgroundImage            = (Get-BlurredImage $b)
-            backgroundImageOpacity     = [Math]::Round([Math]::Max(0.05, (100 - $t) / 100), 2)
-            backgroundImageStretchMode = 'uniformToFill'
+        'droplet' {
+            # misty glass with drips and droplets; the desktop behind is dimmed so text stays readable
+            $glassProps = [ordered]@{
+                colorScheme                = $waterSchemeName
+                opacity                    = [int][Math]::Round((100 - $t * 0.9) * 0.4 + 60)
+                useAcrylic                 = $frost
+                backgroundImage            = $dropletImage
+                backgroundImageOpacity     = 0.8
+                backgroundImageStretchMode = 'uniformToFill'
+            }
+        }
+        'winter' {
+            # a finished winter-window picture: blurred lights, melt streaks and fern frost
+            $glassProps = [ordered]@{
+                colorScheme                = $waterSchemeName
+                opacity                    = [int][Math]::Round(100 - $t * 0.9)
+                useAcrylic                 = $frost
+                backgroundImage            = $winterImage
+                backgroundImageOpacity     = 1
+                backgroundImageStretchMode = 'uniformToFill'
+            }
+        }
+        default {
+            $glassProps = [ordered]@{
+                colorScheme                = $waterSchemeName
+                opacity                    = [int][Math]::Round(100 - $t * 0.9)
+                useAcrylic                 = $frost
+                backgroundImage            = (Get-BlurredImage $prefs.water.blur)
+                backgroundImageOpacity     = [Math]::Round([Math]::Max(0.05, (100 - $t) / 100), 2)
+                backgroundImageStretchMode = 'uniformToFill'
+            }
         }
     }
     foreach ($key in $glassProps.Keys) { $profile | Add-Member -NotePropertyName $key -NotePropertyValue $glassProps[$key] -Force }
@@ -156,9 +286,5 @@ if ($enable) {
 $json = $settings | ConvertTo-Json -Depth 20
 [IO.File]::WriteAllText($settingsPath, $json, (New-Object Text.UTF8Encoding($false)))
 
-if (-not $enable) { Write-Output 'Normal Claude theme ON for the Claude Glass window.' }
-elseif ($prefs.style -eq 'clear') {
-    $blurText = if ($b -gt 0) { 'blur on' } else { 'blur off' }
-    Write-Output "Clear glass ON - $blurText, transparency $t%."
-}
-else { Write-Output "Water glass ON - blur $b/10, transparency $t%." }
+$isGlass = $enable
+Write-Output (Get-Status)
