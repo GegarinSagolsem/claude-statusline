@@ -3,6 +3,7 @@
   "owner": { "name": "GegarinSagolsem" },
   "plugins": [
     { "name": "agent-models", "source": "./agent-models" },
-    { "name": "water-ripple", "source": "./water-ripple" }
+    { "name": "water-ripple", "source": "./water-ripple" },
+    { "name": "task-list", "source": "./task-list" }
   ]
 }

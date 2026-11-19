@@ -22,7 +22,7 @@ export function rippleRow(width: number, f: number): { char: string; level: numb
     const behind = Math.abs(x - center) < radius
     let level = d < 1 ? 0 : d < 2.5 ? 1 : d < 4 ? 2 : behind ? 3 : 5
     level = Math.min(level + fade, 5)
-    return { char: level === 5 ? ' ' : CREST[level], level }
+    return { char: level === 5 ? ' ' : (CREST[level] ?? ' '), level }
   })
 }
 

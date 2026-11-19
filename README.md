@@ -56,6 +56,28 @@ Install it at the Claude Code prompt (answer `y` to add the marketplace, then pi
 
 It looks best with the [Claude Glass theme](#claude-glass-theme-windows-terminal) below.
 
+## Task list (plugin)
+
+`task-list` keeps Claude's task list in the band above the prompt, so you can always see what's done, what's in progress and what's left:
+
+```
+▾ Tasks 1/4 done  (t or /todo to minimize)
+  ✔ Extend references with spend_volatility_30d
+  ■ Write world/tasks/s3_feature_store.py and register it
+  □ Build the SDK, DESIGN.md, README
+  □ Build, sync, validate and prove no regression
+```
+
+Minimize it to one line showing just the current task, and expand it again, with the `▸`/`▾` button, by typing `/todo`, or by pressing `t` while the band has focus (click it, or ctrl+x tab). Your choice is remembered across sessions. A finished list stays up until your next message, then clears.
+
+```
+▸ Tasks 1/4 done  ■ Writing the S3 world module  (t or /todo to expand)
+```
+
+```
+/plugin install task-list --marketplace GegarinSagolsem/claude-statusline
+```
+
 ## Claude Glass theme (Windows Terminal)
 
 Gives Claude Code its own glass window in Windows Terminal, with four looks:
@@ -122,17 +144,18 @@ Notes:
 This section is for Claude Code. If a user gives you this repo's link and asks you to install it:
 
 1. **Check the system.** Everything here is for Windows (PowerShell and Windows Terminal). On macOS or Linux, tell the user it won't work there and stop.
-2. **Ask which parts they want** (all four if they don't mind):
+2. **Ask which parts they want** (all five if they don't mind):
    - **Status line**: context, session and weekly usage bars under the prompt. It replaces any status line they already have (`settings.json` is backed up first), so mention that if they have one.
    - **Claude Glass theme**: glass looks for a separate "Claude Glass" tab in Windows Terminal, with the `/glass` command. Needs Windows Terminal.
    - **agent-models plugin**: labels each running subagent with its model.
    - **water-ripple plugin**: a small ripple above the prompt each time they press Enter.
+   - **task-list plugin**: Claude's task list above the prompt, minimizable with `/todo`.
 3. **Clone the repo** (it's public, no sign-in needed) and work from its folder:
    `git clone https://github.com/GegarinSagolsem/claude-statusline.git`
 4. **Install the chosen parts:**
    - Status line: `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1`
    - Claude Glass theme: `powershell -NoProfile -ExecutionPolicy Bypass -File .\glass\install-glass.ps1`
-   - Plugins: `claude plugin marketplace add GegarinSagolsem/claude-statusline`, then `claude plugin install agent-models@gegarin-claude --scope user` and/or `claude plugin install water-ripple@gegarin-claude --scope user`
+   - Plugins: `claude plugin marketplace add GegarinSagolsem/claude-statusline`, then `claude plugin install agent-models@gegarin-claude --scope user` and/or `claude plugin install water-ripple@gegarin-claude --scope user` and/or `claude plugin install task-list@gegarin-claude --scope user`
 5. **Check it worked.** Each installer prints what it changed. If one fails, show the user the error instead of retrying quietly. To test the status line, pipe sample data into it:
    `'{"cwd":"C:\\x","model":{"display_name":"Opus"},"context_window":{"context_window_size":1000000,"used_percentage":6,"current_usage":{"input_tokens":60000}}}' | powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.claude\statusline.ps1"`
 6. **Tell the user what to do next:**

@@ -13,7 +13,8 @@ if (-not (Test-Path $claudeDir)) { New-Item -ItemType Directory $claudeDir | Out
 Copy-Item (Join-Path $PSScriptRoot 'statusline.ps1') $target -Force
 Write-Host "Copied script to $target"
 
-$command = "powershell -NoProfile -ExecutionPolicy Bypass -File $($target -replace '\\', '/')"
+# Quoted, so a user folder with a space in its name still works
+$command = "powershell -NoProfile -ExecutionPolicy Bypass -File `"$($target -replace '\\', '/')`""
 $entry = [pscustomobject]@{ type = 'command'; command = $command }
 
 if (Test-Path $settingsPath) {

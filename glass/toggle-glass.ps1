@@ -122,7 +122,9 @@ $schemes = @(
     }
 )
 
-$settings = [IO.File]::ReadAllText($settingsPath) | ConvertFrom-Json
+if (-not (Test-Path $settingsPath)) { Write-Output 'Windows Terminal settings.json not found. Open Windows Terminal once, then try again.'; exit 1 }
+try { $settings = [IO.File]::ReadAllText($settingsPath) | ConvertFrom-Json }
+catch { Write-Output "Couldn't read Windows Terminal settings ($settingsPath): $($_.Exception.Message). Nothing was changed."; exit 1 }
 $profile = $settings.profiles.list | Where-Object { $_.name -eq $profileName } | Select-Object -First 1
 if (-not $profile) { Write-Output "Profile '$profileName' not found in Windows Terminal settings."; exit 1 }
 $isGlass = [bool]($profile.PSObject.Properties.Name -contains 'opacity')
@@ -231,6 +233,7 @@ foreach ($old in 'frost.png', 'frost-ice.png') { Remove-Item (Join-Path $glassDi
 Get-ChildItem $glassDir -Filter 'water-mix-*.png' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
 if ($enable) {
+    if (-not ($settings.PSObject.Properties.Name -contains 'schemes')) { $settings | Add-Member -NotePropertyName schemes -NotePropertyValue @() }
     foreach ($scheme in $schemes) {
         if (-not ($settings.schemes | Where-Object { $_.name -eq $scheme.name })) {
             $settings.schemes = @($settings.schemes) + $scheme

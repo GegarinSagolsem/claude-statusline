@@ -12,7 +12,7 @@ const ALIASES: Record<string, string> = {
   opus: 'claude-opus-5-5',
   sonnet: 'claude-sonnet-5-5',
   haiku: 'claude-haiku-5-5',
-  fable: 'claude-fable-5-1',
+  fable: 'claude-fable-5-2',
 }
 
 // "claude-opus-5-5" -> "Opus 5.5"; aliases like "haiku" -> "Haiku 5.5"
@@ -20,10 +20,11 @@ export function prettyModel(model: string): string {
   model = (model && ALIASES[model.toLowerCase()]) || model
   const m = /^claude-([a-z]+)-(\d+)(?:-(\d+))?/.exec(model)
   if (m) {
-    const family = m[1][0].toUpperCase() + m[1].slice(1)
+    const name = m[1] ?? ""
+    const family = name.charAt(0).toUpperCase() + name.slice(1)
     return m[3] ? `${family} ${m[2]}.${m[3]}` : `${family} ${m[2]}`
   }
-  return model ? model[0].toUpperCase() + model.slice(1) : 'unknown'
+  return model ? model.charAt(0).toUpperCase() + model.slice(1) : 'unknown'
 }
 
 function modelColor(model: string): string {

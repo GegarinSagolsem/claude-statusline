@@ -34,13 +34,16 @@ function Tokens($n) {
     elseif ($n -ge 1000) { "{0:0.#}k" -f ($n / 1000) }
     else { "$n" }
 }
+function Pct($p) { if ($null -eq $p) { return 0 } [int][Math]::Round([double]$p) }
 function Until($epoch) {
+    if (-not $epoch) { return "soon" }
     $span = [DateTimeOffset]::FromUnixTimeSeconds([long]$epoch) - [DateTimeOffset]::UtcNow
     if ($span.TotalMinutes -lt 1) { return "now" }
     if ($span.TotalHours -ge 1) { "{0}h {1}m" -f [int][Math]::Floor($span.TotalHours), $span.Minutes }
     else { "{0}m" -f $span.Minutes }
 }
 function WeekDay($epoch) {
+    if (-not $epoch) { return "soon" }
     [DateTimeOffset]::FromUnixTimeSeconds([long]$epoch).ToLocalTime().ToString("ddd h:mm tt")
 }
 
@@ -58,16 +61,17 @@ if ($cw -and $cw.context_window_size) {
     $used = 0
     if ($u) { $used = [long]$u.input_tokens + [long]$u.cache_creation_input_tokens + [long]$u.cache_read_input_tokens }
     $pct = $cw.used_percentage
-    if ($null -eq $pct) { $pct = [Math]::Round($used * 100 / $cw.context_window_size) }
+    if ($null -eq $pct) { $pct = $used * 100 / $cw.context_window_size }
+    $pct = Pct $pct
     $parts += "Context $(ContextBar $pct 20) $(Tokens $used)/$(Tokens $cw.context_window_size) $(Color $pct)$pct%$reset"
 }
 $rl = $j.rate_limits
 if ($rl.five_hour) {
-    $p = $rl.five_hour.used_percentage
+    $p = Pct $rl.five_hour.used_percentage
     $parts += "Session $(Bar $p 8) $(Color $p)$p%$reset $dim(resets in $(Until $rl.five_hour.resets_at))$reset"
 }
 if ($rl.seven_day) {
-    $p = $rl.seven_day.used_percentage
+    $p = Pct $rl.seven_day.used_percentage
     $parts += "Weekly $(Bar $p 8) $(Color $p)$p%$reset $dim(resets $(WeekDay $rl.seven_day.resets_at))$reset"
 }
 

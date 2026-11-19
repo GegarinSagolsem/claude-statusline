@@ -1,0 +1,7 @@
+{
+  "name": "task-list",
+  "version": "0.1.0",
+  "description": "Keeps Claude's task list above the prompt, with a button to minimize or expand it",
+  "author": { "name": "GegarinSagolsem" },
+  "types": "./types/index.d.ts"
+}
